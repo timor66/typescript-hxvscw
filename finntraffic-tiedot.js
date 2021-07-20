@@ -1,5 +1,6 @@
 import { LitElement, html } from 'lit-element';
 import mapboxgl from 'mapbox-gl';
+var moment = require('moment');
 
 const MAB_BOX_TIMEOUT = 60000000;
 const MAPBOX_TOKEN =
@@ -74,9 +75,9 @@ class MapBoxComponent extends LitElement {
           });
 
           mappi.addLayer({
-            id: 'tiedotteet',
+            id: 'liikennetiedotteet',
             type: 'line',
-            source: 'tiedotteet',
+            source: 'liikennetiedotteet',
             layout: {
               'line-join': 'round',
               'line-cap': 'round'
@@ -99,11 +100,11 @@ class MapBoxComponent extends LitElement {
             popup_tietyot.remove();
           });
 
-          mappi.on('mouseenter', 'tiedotteet', function(e) {
+          mappi.on('mouseenter', 'liikennetiedotteet', function(e) {
             mappi.getCanvas().style.cursor = 'pointer';
           });
 
-          mappi.on('mouseleave', 'tiedotteet', function() {
+          mappi.on('mouseleave', 'liikennetiedotteet', function() {
             mappi.getCanvas().style.cursor = '';
             popup_tiedotteet.remove();
           });
@@ -113,20 +114,37 @@ class MapBoxComponent extends LitElement {
 
             var announcements = eval(e.features[0].properties.announcements);
             var title = announcements[0].title;
+            var features = eval(announcements[0].features);
+            console.log(features[0]);
             var roadWorkPhases = eval(announcements[0].roadWorkPhases);
             var worktypes = eval(roadWorkPhases[0].worktypes);
             var location_description = announcements[0].location.description;
             var worktypes_description = worktypes[0].description;
-            var releaseTime = e.features[0].properties.releaseTime;
-            var description = announcements[0].location.description;
+            var releaseTime = moment(e.features[0].properties.releaseTime).format('DD.MM.YYYY HH:mm:ss');
+            var time_and_duration = announcements[0].timeAndDuration;
+            var start_time = moment(time_and_duration.startTime).format('DD.MM.YYYY HH:mm:ss');
+            var end_time = moment(time_and_duration.endTime).format('DD.MM.YYYY HH:mm:ss');
+            var working_hours = announcements[0].roadWorkPhases[0].workingHours;
 
+            var wrkHrs = '';
+            weekdays = [];
+            weekdays.push('MONDAY', 'MA');
+            weekdays.push('TUESDAY', 'TI');
+            weekdays.push('WEDNESDAY', 'KE');
+            weekdays.push('THURSDAY', 'TO');
+            weekdays.push('FRIDAY', 'PE');
+
+            working_hours.forEach(function (arrayItem) {
+              wrkHrs = arrayItem.weekday + ' ' + arrayItem.startTime + ' - ' + arrayItem.endTime;
+          });
+            console.log(wrkHrs);
             popup_tietyot.setHTML(
               '<h3>' +
                 title +
                 '</h3><br/>' +
                 releaseTime +
                 '<br/><br/>' +
-                description + 
+                location_description + 
                 '<br/><br/>' +
                 worktypes_description +
                 '<br/><br/>'
@@ -136,17 +154,22 @@ class MapBoxComponent extends LitElement {
             popup_tietyot.addTo(mappi);
           });
 
-          mappi.on('click', 'tiedotteet', function(e) {
+          mappi.on('click', 'liikennetiedotteet', function(e) {
             mappi.getCanvas().style.cursor = 'pointer';
 
             var announcements = eval(e.features[0].properties.announcements);
             var title = announcements[0].title;
             var features = eval(announcements[0].features);
-            var features_name = features[0].name;
-            var comment = announcements[0].comment;
-            var releaseTime = e.features[0].properties.releaseTime;
+            console.log(e.features[0].properties.releaseTime);
+            var features_name = (features[0].name != '') ? features[0].name : '';
+            var comment = (announcements[0].comment != '') ? announcements[0].comment : '';
+            var releaseTime = moment(e.features[0].properties.releaseTime).format('DD.MM.YYYY HH:mm:ss');
             var description = announcements[0].location.description;
+            var time_and_duration = announcements[0].timeAndDuration;
+            var start_time = moment(time_and_duration.startTime).format('DD.MM.YYYY HH:mm:ss');
+            var end_time = moment(time_and_duration.endTime).format('DD.MM.YYYY HH:mm:ss');
 
+            console.log(time_and_duration);
             popup_tiedotteet.setHTML(
               '<h3>' +
                 title +
@@ -156,6 +179,8 @@ class MapBoxComponent extends LitElement {
                 description +
                 '<br/><br/>' +
                 features_name +
+                '<br/><br/>' +
+                start_time + '&nbsp;&minus;<br/>' + end_time +
                 '<br/><br/>' +
                 comment
             );
@@ -212,7 +237,7 @@ class MapBoxComponent extends LitElement {
     mappi.on('idle', function() {
       // If these two layers have been added to the style,
       // add the toggle buttons.
-      if (mappi.getLayer('tietyot') && mappi.getLayer('tiedotteet')) {
+      if (mappi.getLayer('tietyot') && mappi.getLayer('liikennetiedotteet')) {
         // Enumerate ids of the layers.
         var toggleableLayerIds = ['tietyot', 'liikennetiedotteet'];
         // Set up the corresponding toggle button for each layer.
