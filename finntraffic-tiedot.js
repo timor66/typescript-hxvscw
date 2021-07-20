@@ -60,6 +60,7 @@ class MapBoxComponent extends LitElement {
               'https://tie.digitraffic.fi/api/v3/data/traffic-messages/simple?inactiveHours=0&includeAreaGeometry=false&situationType=TRAFFIC_ANNOUNCEMENT'
           });
 
+          
           mappi.addLayer({
             id: 'tietyot',
             type: 'line',
