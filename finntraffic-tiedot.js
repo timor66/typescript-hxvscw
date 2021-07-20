@@ -53,7 +53,7 @@ class MapBoxComponent extends LitElement {
               'https://tie.digitraffic.fi/api/v3/data/traffic-messages/simple?inactiveHours=0&includeAreaGeometry=true&situationType=ROAD_WORK'
           });
 
-          mappi.addSource('tiedotteet', {
+          mappi.addSource('liikennetiedotteet', {
             type: 'geojson',
             data:
               'https://tie.digitraffic.fi/api/v3/data/traffic-messages/simple?inactiveHours=0&includeAreaGeometry=false&situationType=TRAFFIC_ANNOUNCEMENT'
@@ -83,7 +83,7 @@ class MapBoxComponent extends LitElement {
             },
             paint: {
               'line-color': '#ff0',
-              'line-width': 4
+              'line-width': 8
             }
           });
 
@@ -115,6 +115,7 @@ class MapBoxComponent extends LitElement {
             var title = announcements[0].title;
             var roadWorkPhases = eval(announcements[0].roadWorkPhases);
             var worktypes = eval(roadWorkPhases[0].worktypes);
+            var location_description = announcements[0].location.description;
             var worktypes_description = worktypes[0].description;
             var releaseTime = e.features[0].properties.releaseTime;
             var description = announcements[0].location.description;
@@ -125,7 +126,11 @@ class MapBoxComponent extends LitElement {
                 '</h3><br/>' +
                 releaseTime +
                 '<br/><br/>' +
-                description
+                description + 
+                '<br/><br/>' +
+                worktypes_description +
+                '<br/><br/>'
+
             );
             popup_tietyot.setLngLat(e.lngLat);
             popup_tietyot.addTo(mappi);
@@ -209,7 +214,7 @@ class MapBoxComponent extends LitElement {
       // add the toggle buttons.
       if (mappi.getLayer('tietyot') && mappi.getLayer('tiedotteet')) {
         // Enumerate ids of the layers.
-        var toggleableLayerIds = ['tietyot', 'tiedotteet'];
+        var toggleableLayerIds = ['tietyot', 'liikennetiedotteet'];
         // Set up the corresponding toggle button for each layer.
         for (var i = 0; i < toggleableLayerIds.length; i++) {
           var id = toggleableLayerIds[i];
