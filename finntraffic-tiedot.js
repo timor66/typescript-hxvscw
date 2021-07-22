@@ -1,12 +1,18 @@
 import { LitElement, html } from 'lit-element';
 import mapboxgl from 'mapbox-gl';
+import axios from 'axios';
+import proj4 from 'proj4';
 var moment = require('moment');
+const axios = require('axios');
+const epsg3067 = require('epsg-index/s/3067.json');
+const epsg4326 = require('epsg-index/s/4326.json');
 
 const MAB_BOX_TIMEOUT = 60000000;
 const MAPBOX_TOKEN =
   'pk.eyJ1IjoidGltb3I2NiIsImEiOiJja3F3ODczd3UwNTJ4MndueHBkdjB5c3dsIn0.68mu1Rk-3ZMPqlzBF_HknQ';
 
 var mappi;
+var pno_geojson;
 
 class MapBoxComponent extends LitElement {
   constructor() {
@@ -28,6 +34,67 @@ class MapBoxComponent extends LitElement {
       maximumAge: 0
     };
     mappi = this.map;
+
+    /*async function makeGetRequest() {
+
+      let res = await axios.get('https://geo.stat.fi/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=postialue:pno_tilasto&outputFormat=json');
+    
+      let data = res.data;
+      return data;
+    }
+    
+    console.log(makeGetRequest());*/ 
+
+    const sendGetRequest = async () => {
+      try {
+          const resp = await axios.get('https://geo.stat.fi/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=postialue:pno_tilasto&outputFormat=json');
+          return resp.data;
+      } catch (err) {
+          // Handle Error Here
+          console.error(err);
+      }
+  };
+  
+  pno_geojson = sendGetRequest();
+
+   /*function get_pno_geojson() {
+     let data;
+     await axios.get('https://geo.stat.fi/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=postialue:pno_tilasto&outputFormat=json')
+    .then((response) => {data = response.data})
+    .catch(function (error) {
+      console.log(error);
+    });
+    return data;
+  }  */  
+//pno_geojson = get_pno_geojson();
+    /*get_pno_geojson() {
+
+      let data = {};
+
+      axios.get('https://geo.stat.fi/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=postialue:pno_tilasto&outputFormat=json')
+      .then(function (response) {
+          data = response.data;
+      }).catch(function (error) {
+          console.log(error);
+      });
+      return data;
+    };*/
+
+    console.log(pno_geojson);
+    var pno_geojson_tmp = eval(pno_geojson);
+    console.log(pno_geojson_tmp.features[0].geometry);
+
+    pno_geojson_coordinates.forEach(function(arrayItem) {
+      arrayItem[0].forEach(function(arrayItem2) {
+        var val = proj4(epsg3067.proj4,epsg4326.proj4, arrayItem2);
+        //console.log(proj4(epsg3067.proj4,epsg4326.proj4, arrayItem2));
+        arrayItem2.splice(0, 1, val[0]);
+        arrayItem2.splice(1, 1, val[1]);
+
+
+      });
+    });
+
     this.buildMap();
   }
 
@@ -47,20 +114,26 @@ class MapBoxComponent extends LitElement {
         function(error, image) {
           if (error) throw error;
           mappi.addImage('custom-marker', image);
-          // Add a GeoJSON source with 2 points
+          // Tietyöt layer
           mappi.addSource('tietyot', {
             type: 'geojson',
             data:
               'https://tie.digitraffic.fi/api/v3/data/traffic-messages/simple?inactiveHours=0&includeAreaGeometry=true&situationType=ROAD_WORK'
           });
 
+          // Tieliikennetiedotteet layer
           mappi.addSource('liikennetiedotteet', {
             type: 'geojson',
             data:
               'https://tie.digitraffic.fi/api/v3/data/traffic-messages/simple?inactiveHours=0&includeAreaGeometry=false&situationType=TRAFFIC_ANNOUNCEMENT'
           });
 
-          
+          mappi.addSource('postinumerot', {
+            type: 'geojson',
+            data: {"type":"FeatureCollection","features":[{"type":"Feature","id":"pno_tilasto.24","geometry":{"type":"MultiPolygon","coordinates":pno},"geometry_name":"geom","properties":{"postinumeroalue":"00340","nimi":"Kuusisaari-Lehtisaari","namn":"Granö-Lövö","euref_x":380834,"euref_y":6673255,"pinta_ala":1008214,"vuosi":2021,"kunta":"091","he_vakiy":1776,"he_naiset":889,"he_miehet":887,"he_kika":44,"he_0_2":51,"he_3_6":58,"he_7_12":127,"he_13_15":74,"he_16_17":44,"he_18_19":35,"he_20_24":100,"he_25_29":75,"he_30_34":74,"he_35_39":78,"he_40_44":132,"he_45_49":133,"he_50_54":142,"he_55_59":155,"he_60_64":117,"he_65_69":89,"he_70_74":102,"he_75_79":73,"he_80_84":52,"he_85_":65,"ko_ika18y":1422,"ko_perus":194,"ko_koul":1228,"ko_yliop":200,"ko_ammat":253,"ko_al_kork":200,"ko_yl_kork":575,"hr_tuy":1422,"hr_ktu":63919,"hr_mtu":34641,"hr_pi_tul":264,"hr_ke_tul":431,"hr_hy_tul":727,"hr_ovy":90892273,"te_taly":756,"te_takk":2.3,"te_as_valj":52,"te_yks":236,"te_nuor":36,"te_eil_np":21,"te_laps":199,"te_plap":45,"te_aklap":81,"te_klap":91,"te_teini":85,"te_yhlap":27,"te_aik":303,"te_elak":260,"te_omis_as":557,"te_vuok_as":163,"te_muu_as":36,"tr_kuty":756,"tr_ktu":119495,"tr_mtu":67491,"tr_pi_tul":76,"tr_ke_tul":239,"tr_hy_tul":441,"tr_ovy":90337991,"ra_ke":1,"ra_raky":227,"ra_muut":22,"ra_asrak":205,"ra_asunn":852,"ra_as_kpa":122.2,"ra_pt_as":396,"ra_kt_as":456,"tp_tyopy":367,"tp_alku_a":2,"tp_jalo_bf":7,"tp_palv_gu":358,"tp_a_maat":2,"tp_b_kaiv":0,"tp_c_teol":1,"tp_d_ener":0,"tp_e_vesi":0,"tp_f_rake":6,"tp_g_kaup":14,"tp_h_kulj":11,"tp_i_majo":10,"tp_j_info":135,"tp_k_raho":9,"tp_l_kiin":13,"tp_m_erik":38,"tp_n_hall":7,"tp_o_julk":0,"tp_p_koul":0,"tp_q_terv":91,"tp_r_taid":13,"tp_s_muup":11,"tp_t_koti":0,"tp_u_kans":6,"tp_x_tunt":0,"pt_vakiy":1767,"pt_tyoll":807,"pt_tyott":46,"pt_0_14":266,"pt_opisk":141,"pt_elakel":404,"pt_muut":103,"bbox":[380321.1969,6672345.0962,381932.2753,6674414.7585]}}]}
+                          //'https://geo.stat.fi/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=postialue:pno_tilasto&outputFormat=json'
+          });
+
           mappi.addLayer({
             id: 'tietyot',
             type: 'line',
@@ -89,6 +162,16 @@ class MapBoxComponent extends LitElement {
             }
           });
 
+          mappi.addLayer({
+            id: 'postinumerot',
+            type: 'fill',
+            source: 'postinumerot',
+            paint: {
+              
+              "fill-color": "#0000ff"
+              
+            }
+          });          
           var popup_tietyot = new mapboxgl.Popup();
           var popup_tiedotteet = new mapboxgl.Popup();
 
@@ -328,6 +411,9 @@ class MapBoxComponent extends LitElement {
       <div id="finntraffic-map"></div>
     `;
   }
+
+  
 }
 //Component registration
 customElements.define('mapbox-component', MapBoxComponent);
+
