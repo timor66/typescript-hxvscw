@@ -47,7 +47,7 @@ class MapBoxComponent extends LitElement {
 
     const sendGetRequest = async () => {
       try {
-          const resp = await axios.get('https://geo.stat.fi/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=postialue:pno_tilasto&outputFormat=json');
+          const resp = await axios.get('https://geo.stat.fi/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=postialue:pno_tilasto&outputFormat=json', {timeout: 5000});
           return resp.data;
       } catch (err) {
           // Handle Error Here
@@ -55,7 +55,28 @@ class MapBoxComponent extends LitElement {
       }
   };
   
-  pno_geojson = sendGetRequest();
+  let myHandler = (r) => {
+    console.log('Called!');
+    var pno_geojson_tmp = eval(r);
+    var pno_geojson_tmp_features = eval(pno_geojson_tmp.features);
+    console.log(pno_geojson_tmp.features);
+
+    pno_geojson_tmp.features.forEach(function(arrayItem) {
+      arrayItem.geometry.coordinates.forEach(function(arrayItem2) {
+        /*var val = proj4(epsg3067.proj4,epsg4326.proj4, arrayItem2);
+        //console.log(proj4(epsg3067.proj4,epsg4326.proj4, arrayItem2));
+        arrayItem2.splice(0, 1, val[0]);
+        arrayItem2.splice(1, 1, val[1]);*/
+        console.log(arrayItem2);
+  
+  
+      });
+      //console.log(arrayItem.geometry.coordinates);
+    });
+    console.log(pno_geojson_tmp);  
+  };
+
+  sendGetRequest().then(res => myHandler(res));
 
    /*function get_pno_geojson() {
      let data;
@@ -80,20 +101,8 @@ class MapBoxComponent extends LitElement {
       return data;
     };*/
 
-    console.log(pno_geojson);
-    var pno_geojson_tmp = eval(pno_geojson);
-    console.log(pno_geojson_tmp.features[0].geometry);
+    //console.log(pno_geojson);
 
-    pno_geojson_coordinates.forEach(function(arrayItem) {
-      arrayItem[0].forEach(function(arrayItem2) {
-        var val = proj4(epsg3067.proj4,epsg4326.proj4, arrayItem2);
-        //console.log(proj4(epsg3067.proj4,epsg4326.proj4, arrayItem2));
-        arrayItem2.splice(0, 1, val[0]);
-        arrayItem2.splice(1, 1, val[1]);
-
-
-      });
-    });
 
     this.buildMap();
   }
