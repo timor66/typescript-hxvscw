@@ -157,7 +157,19 @@ class MapBoxComponent extends LitElement {
               "fill-opacity": 0.5
               
             }
-          });          
+          });    
+          
+          mappi.addLayer({
+            'id': 'outline',
+            'type': 'line',
+            'source': 'postinumerot',
+            'layout': {},
+            'paint': {
+            'line-color': '#000',
+            'line-width': 3
+            }
+          });
+
           var popup_tietyot = new mapboxgl.Popup();
           var popup_tiedotteet = new mapboxgl.Popup();
 
@@ -177,6 +189,13 @@ class MapBoxComponent extends LitElement {
           mappi.on('mouseleave', 'liikennetiedotteet', function() {
             mappi.getCanvas().style.cursor = '';
             popup_tiedotteet.remove();
+          });
+
+          mappi.on('click', 'postinumerot', function (e) {
+            new mapboxgl.Popup()
+            .setLngLat(e.lngLat)
+            .setHTML(e.features[0].properties.nimi)
+            .addTo(mappi);
           });
 
           mappi.on('click', 'tietyot', function(e) {
