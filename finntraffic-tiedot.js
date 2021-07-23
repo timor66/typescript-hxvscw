@@ -10,6 +10,9 @@ const epsg4326 = require('epsg-index/s/4326.json');
 const MAB_BOX_TIMEOUT = 60000000;
 const MAPBOX_TOKEN =
   'pk.eyJ1IjoidGltb3I2NiIsImEiOiJja3F3ODczd3UwNTJ4MndueHBkdjB5c3dsIn0.68mu1Rk-3ZMPqlzBF_HknQ';
+const url_road_works = 'https://tie.digitraffic.fi/api/v3/data/traffic-messages/simple?inactiveHours=0&includeAreaGeometry=true&situationType=ROAD_WORK';
+const url_traffic_announcements = 'https://tie.digitraffic.fi/api/v3/data/traffic-messages/simple?inactiveHours=0&includeAreaGeometry=false&situationType=TRAFFIC_ANNOUNCEMENT';
+const url_postal_areas = 'https://geo.stat.fi/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=postialue:pno_tilasto&outputFormat=json';
 
 var mappi;
 var pno_geojson;
@@ -35,19 +38,9 @@ class MapBoxComponent extends LitElement {
     };
     mappi = this.map;
 
-    /*async function makeGetRequest() {
-
-      let res = await axios.get('https://geo.stat.fi/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=postialue:pno_tilasto&outputFormat=json');
-    
-      let data = res.data;
-      return data;
-    }
-    
-    console.log(makeGetRequest());*/ 
-
     const sendGetRequest = async () => {
       try {
-          const resp = await axios.get('https://geo.stat.fi/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=postialue:pno_tilasto&outputFormat=json', {timeout: 10000});
+          const resp = await axios.get(url_postal_areas, {timeout: 10000});
           return resp.data;
       } catch (err) {
           // Handle Error Here
@@ -55,31 +48,26 @@ class MapBoxComponent extends LitElement {
       }
   };
   
-  let myHandler = (r) => {
-    console.log('Called!');
-    var pno_geojson_tmp = eval(r);
+  let epgs_3067_Handler = (res) => {
+    var pno_geojson_tmp = eval(res);
     var pno_geojson_tmp_features = eval(pno_geojson_tmp.features);
-    //console.log(pno_geojson_tmp.features);
 
-    pno_geojson_tmp.features.forEach(function(arrayItem) {
-      arrayItem.geometry.coordinates.forEach(function(arrayItem2) {
-        arrayItem2.forEach(function(ai) {
-          ai.forEach(function(ai2){
-            var val = proj4(epsg3067.proj4,epsg4326.proj4, ai2);
-            //console.log(proj4(epsg3067.proj4,epsg4326.proj4, ai2));
-            ai2.splice(0, 1, val[0]);
-            ai2.splice(1, 1, val[1]);
+    pno_geojson_tmp.features.forEach(function(feature) {
+      feature.geometry.coordinates.forEach(function(coordinates) {
+        coordinates.forEach(function(coord) {
+          coord.forEach(function(coord2){
+            var latlon = proj4(epsg3067.proj4,epsg4326.proj4, coord2);
+            coord2.splice(0, 1, latlon[0]);
+            coord2.splice(1, 1, latlon[1]);
           });
         });
-        //console.log(arrayItem2);
       });
-      //console.log(arrayItem.geometry.coordinates);
     });
     pno_geojson = pno_geojson_tmp;  
     this.buildMap();
   };
 
-  sendGetRequest().then(res => myHandler(res));
+  sendGetRequest().then(result => epgs_3067_Handler(result));
 
   }
 
@@ -102,21 +90,18 @@ class MapBoxComponent extends LitElement {
           // Tietyöt layer
           mappi.addSource('tietyot', {
             type: 'geojson',
-            data:
-              'https://tie.digitraffic.fi/api/v3/data/traffic-messages/simple?inactiveHours=0&includeAreaGeometry=true&situationType=ROAD_WORK'
+            data: url_road_works
           });
 
           // Tieliikennetiedotteet layer
           mappi.addSource('liikennetiedotteet', {
             type: 'geojson',
-            data:
-              'https://tie.digitraffic.fi/api/v3/data/traffic-messages/simple?inactiveHours=0&includeAreaGeometry=false&situationType=TRAFFIC_ANNOUNCEMENT'
+            data: url_traffic_announcements
           });
 
-          mappi.addSource('postinumerot', {
+          mappi.addSource('postinumeroalueet', {
             type: 'geojson',
             data: pno_geojson
-                          //'https://geo.stat.fi/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=postialue:pno_tilasto&outputFormat=json'
           });
 
           mappi.addLayer({
@@ -148,9 +133,9 @@ class MapBoxComponent extends LitElement {
           });
 
           mappi.addLayer({
-            id: 'postinumerot',
+            id: 'postinumeroalueet',
             type: 'fill',
-            source: 'postinumerot',
+            source: 'postinumeroalueet',
             paint: {
               
               "fill-color": "#0000ff",
@@ -162,7 +147,7 @@ class MapBoxComponent extends LitElement {
           mappi.addLayer({
             'id': 'outline',
             'type': 'line',
-            'source': 'postinumerot',
+            'source': 'postinumeroalueet',
             'layout': {},
             'paint': {
             'line-color': '#000',
@@ -191,7 +176,7 @@ class MapBoxComponent extends LitElement {
             popup_tiedotteet.remove();
           });
 
-          mappi.on('click', 'postinumerot', function (e) {
+          mappi.on('click', 'postinumeroalueet', function (e) {
             new mapboxgl.Popup()
             .setLngLat(e.lngLat)
             .setHTML(e.features[0].properties.nimi)
@@ -204,7 +189,6 @@ class MapBoxComponent extends LitElement {
             var announcements = eval(e.features[0].properties.announcements);
             var title = announcements[0].title;
             var features = eval(announcements[0].features);
-            console.log(features[0]);
             var roadWorkPhases = eval(announcements[0].roadWorkPhases);
             var worktypes = eval(roadWorkPhases[0].worktypes);
             var location_description = announcements[0].location.description;
@@ -284,7 +268,6 @@ class MapBoxComponent extends LitElement {
             var announcements = eval(e.features[0].properties.announcements);
             var title = announcements[0].title;
             var features = eval(announcements[0].features);
-            console.log(e.features[0].properties.releaseTime);
             var features_name = features[0].name != '' ? features[0].name : '';
             var comment = announcements[0].comment;
             var releaseTime = moment(
@@ -299,7 +282,6 @@ class MapBoxComponent extends LitElement {
               'DD.MM.YYYY HH:mm:ss'
             );
 
-            console.log(time_and_duration);
             popup_tiedotteet.setHTML(
               '<h3>' +
                 title +
@@ -369,9 +351,9 @@ class MapBoxComponent extends LitElement {
     mappi.on('idle', function() {
       // If these two layers have been added to the style,
       // add the toggle buttons.
-      if (mappi.getLayer('tietyot') && mappi.getLayer('liikennetiedotteet')) {
+      if (mappi.getLayer('tietyot') && mappi.getLayer('liikennetiedotteet') && mappi.getLayer('postinumeroalueet')) {
         // Enumerate ids of the layers.
-        var toggleableLayerIds = ['tietyot', 'liikennetiedotteet'];
+        var toggleableLayerIds = ['tietyot', 'liikennetiedotteet','postinumeroalueet'];
         // Set up the corresponding toggle button for each layer.
         for (var i = 0; i < toggleableLayerIds.length; i++) {
           var id = toggleableLayerIds[i];
