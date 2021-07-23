@@ -10,9 +10,12 @@ const epsg4326 = require('epsg-index/s/4326.json');
 const MAB_BOX_TIMEOUT = 60000000;
 const MAPBOX_TOKEN =
   'pk.eyJ1IjoidGltb3I2NiIsImEiOiJja3F3ODczd3UwNTJ4MndueHBkdjB5c3dsIn0.68mu1Rk-3ZMPqlzBF_HknQ';
-const url_road_works = 'https://tie.digitraffic.fi/api/v3/data/traffic-messages/simple?inactiveHours=0&includeAreaGeometry=true&situationType=ROAD_WORK';
-const url_traffic_announcements = 'https://tie.digitraffic.fi/api/v3/data/traffic-messages/simple?inactiveHours=0&includeAreaGeometry=false&situationType=TRAFFIC_ANNOUNCEMENT';
-const url_postal_areas = 'https://geo.stat.fi/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=postialue:pno_tilasto&outputFormat=json';
+const url_road_works =
+  'https://tie.digitraffic.fi/api/v3/data/traffic-messages/simple?inactiveHours=0&includeAreaGeometry=true&situationType=ROAD_WORK';
+const url_traffic_announcements =
+  'https://tie.digitraffic.fi/api/v3/data/traffic-messages/simple?inactiveHours=0&includeAreaGeometry=false&situationType=TRAFFIC_ANNOUNCEMENT';
+const url_postal_areas =
+  'https://geo.stat.fi/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=postialue:pno_tilasto&outputFormat=json';
 
 var mappi;
 var pno_geojson;
@@ -40,35 +43,34 @@ class MapBoxComponent extends LitElement {
 
     const sendGetRequest = async () => {
       try {
-          const resp = await axios.get(url_postal_areas);
-          return resp.data;
+        const resp = await axios.get(url_postal_areas);
+        return resp.data;
       } catch (err) {
-          // Handle Error Here
-          console.error(err);
+        console.error(err);
       }
-  };
-  
-  let epgs_3067_Handler = (res) => {
-    var pno_geojson_tmp = eval(res);
-    var pno_geojson_tmp_features = eval(pno_geojson_tmp.features);
+    };
 
-    pno_geojson_tmp.features.forEach(function(feature) {
-      feature.geometry.coordinates.forEach(function(coordinates) {
-        coordinates.forEach(function(coord) {
-          coord.forEach(function(coord2){
-            var latlon = proj4(epsg3067.proj4,epsg4326.proj4, coord2);
-            coord2.splice(0, 1, latlon[0]);
-            coord2.splice(1, 1, latlon[1]);
+    let epgs_3067_Handler = res => {
+      var pno_geojson_tmp = eval(res);
+      var pno_geojson_tmp_features = eval(pno_geojson_tmp.features);
+
+      pno_geojson_tmp.features.forEach(function(feature) {
+        feature.geometry.coordinates.forEach(function(coordinates) {
+          coordinates.forEach(function(coord) {
+            coord.forEach(function(coord2) {
+              var latlon = proj4(epsg3067.proj4, epsg4326.proj4, coord2);
+              coord2.splice(0, 1, latlon[0]);
+              coord2.splice(1, 1, latlon[1]);
+            });
           });
         });
       });
-    });
-    pno_geojson = pno_geojson_tmp;  
-    this.buildMap();
-  };
+      pno_geojson = pno_geojson_tmp;
+      document.getElementById('loader').style.display = 'none';
+      this.buildMap();
+    };
 
-  sendGetRequest().then(result => epgs_3067_Handler(result));
-
+    sendGetRequest().then(result => epgs_3067_Handler(result));
   }
 
   buildMap() {
@@ -81,29 +83,55 @@ class MapBoxComponent extends LitElement {
     }).addControl(new mapboxgl.NavigationControl(), 'top-left');
 
     mappi.on('load', () => {
-      // Add an image to use as a custom marker
       mappi.loadImage(
         'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',
         function(error, image) {
           if (error) throw error;
           mappi.addImage('custom-marker', image);
-          // Tietyöt layer
+
+          // Tietyöt lähde
           mappi.addSource('tietyot', {
             type: 'geojson',
             data: url_road_works
           });
 
-          // Tieliikennetiedotteet layer
+          // Tieliikennetiedotteet lähde
           mappi.addSource('liikennetiedotteet', {
             type: 'geojson',
             data: url_traffic_announcements
           });
 
+          // Postinumeroalueet lähde
           mappi.addSource('postinumeroalueet', {
             type: 'geojson',
             data: pno_geojson
           });
 
+          // Postinumeroalueet layer täyttö
+          mappi.addLayer({
+            id: 'postinumeroalueet',
+            type: 'fill',
+            source: 'postinumeroalueet',
+            paint: {
+              'fill-color': '#0000ff',
+              'fill-opacity': 0.2
+            }
+          });
+
+          // Postinumeroalueet layer rajaviivat
+          mappi.addLayer({
+            id: 'alueviivat',
+            type: 'line',
+            source: 'postinumeroalueet',
+            layout: {},
+            paint: {
+              'line-color': '#000',
+              'line-opacity': 0.2,
+              'line-width': 2
+            }
+          });
+
+          // Tietyöt layer viivat
           mappi.addLayer({
             id: 'tietyot',
             type: 'line',
@@ -118,6 +146,7 @@ class MapBoxComponent extends LitElement {
             }
           });
 
+          // Tieliikennetiedotteet layer viivat
           mappi.addLayer({
             id: 'liikennetiedotteet',
             type: 'line',
@@ -129,29 +158,6 @@ class MapBoxComponent extends LitElement {
             paint: {
               'line-color': '#ff0',
               'line-width': 8
-            }
-          });
-
-          mappi.addLayer({
-            id: 'postinumeroalueet',
-            type: 'fill',
-            source: 'postinumeroalueet',
-            paint: {
-              
-              "fill-color": "#0000ff",
-              "fill-opacity": 0.5
-              
-            }
-          });    
-          
-          mappi.addLayer({
-            'id': 'alueviivat',
-            'type': 'line',
-            'source': 'postinumeroalueet',
-            'layout': {},
-            'paint': {
-            'line-color': '#000',
-            'line-width': 2
             }
           });
 
@@ -176,11 +182,34 @@ class MapBoxComponent extends LitElement {
             popup_tiedotteet.remove();
           });
 
-          mappi.on('click', 'postinumeroalueet', function (e) {
+          mappi.on('click', 'postinumeroalueet', function(e) {
             new mapboxgl.Popup()
-            .setLngLat(e.lngLat)
-            .setHTML(e.features[0].properties.nimi)
-            .addTo(mappi);
+              .setLngLat(e.lngLat)
+              .setHTML(
+                '<table><th>' +
+                  e.features[0].properties.nimi +
+                  '</th><tbody>' +
+                  '<tr><td>Postinumeroalue</td><td>' +
+                  e.features[0].properties.postinumeroalue +
+                  '</td></tr>' +
+                  '<tr><td>Nimi</td><td>' +
+                  e.features[0].properties.nimi +
+                  '</td></tr>' +
+                  '<tr><td>Namn</td><td>' +
+                  e.features[0].properties.namn +
+                  '</td></tr>' +
+                  '<tr><td>Pinta-ala</td><td>' +
+                  e.features[0].properties.pinta_ala +
+                  '</td></tr>' +
+                  '<tr><td>Vuosi</td><td>' +
+                  e.features[0].properties.vuosi +
+                  '</td></tr>' +
+                  '<tr><td>Kunta</td><td>' +
+                  e.features[0].properties.kunta +
+                  '</td></tr>' +
+                  '</tbody><table>'
+              )
+              .addTo(mappi);
           });
 
           mappi.on('click', 'tietyot', function(e) {
@@ -207,7 +236,9 @@ class MapBoxComponent extends LitElement {
             var restrictions = eval(
               announcements[0].roadWorkPhases[0].restrictions
             );
-            var comment = (!announcements[0].roadWorkPhases[0].comment) ? '' : announcements[0].roadWorkPhases[0].comment;
+            var comment = !announcements[0].roadWorkPhases[0].comment
+              ? ''
+              : announcements[0].roadWorkPhases[0].comment;
 
             var wrkHrs = '';
             var resTr = '';
@@ -232,9 +263,15 @@ class MapBoxComponent extends LitElement {
             restrictions.forEach(function(arrayItem) {
               resTr =
                 resTr +
-                arrayItem.restriction.name + '. ' +
-                (!arrayItem.restriction.quantity ? '' : arrayItem.restriction.quantity)  + '. ' +
-                (!arrayItem.restriction.unit ? '' : arrayItem.restriction.unit) +
+                arrayItem.restriction.name +
+                '. ' +
+                (!arrayItem.restriction.quantity
+                  ? ''
+                  : arrayItem.restriction.quantity) +
+                '. ' +
+                (!arrayItem.restriction.unit
+                  ? ''
+                  : arrayItem.restriction.unit) +
                 '. ';
             });
 
@@ -301,49 +338,6 @@ class MapBoxComponent extends LitElement {
             popup_tiedotteet.setLngLat(e.lngLat);
             popup_tiedotteet.addTo(mappi);
           });
-          // Add a symbol layer
-          /*mappi.addLayer({
-                      'id': 'points',
-                      'type': 'symbol',
-                      'source': 'points',
-                      'layout': {
-                          'icon-image': 'custom-marker',
-                          // get the title name from the source's "title" property
-                          'text-field': ['get', 'tasks'],
-                          'text-font': [
-                             'Open Sans Semibold',
-                              'Arial Unicode MS Bold'
-                          ],
-                          'text-offset': [0, 1.25],
-                          'text-anchor': 'top'
-                      }
-                  });*/
-          /*mappi.on('click', 'points', function (e) {
-                    var coordinates = e.features[0].geometry.coordinates.slice();
-                    var description = e.features[0].properties.tasks + "<br/>" + e.features[0].properties.time;
-                     
-                    // Ensure that if the map is zoomed out such that multiple
-                    // copies of the feature are visible, the popup appears
-                    // over the copy being pointed to.
-                    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-                        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-                    }
-                     
-                    new mapboxgl.Popup()
-                        .setLngLat(coordinates)
-                        .setHTML(description)
-                        .addTo(mappi);
-                    });
-                     
-                    // Change the cursor to a pointer when the mouse is over the places layer.
-                    mappi.on('mouseenter', 'points', function () {
-                        mappi.getCanvas().style.cursor = 'pointer';
-                    });
-                     
-                    // Change it back to a pointer when it leaves.
-                    mappi.on('mouseleave', 'points', function () {
-                    mappi.getCanvas().style.cursor = '';
-                    });*/
         }
       );
     });
@@ -351,9 +345,17 @@ class MapBoxComponent extends LitElement {
     mappi.on('idle', function() {
       // If these two layers have been added to the style,
       // add the toggle buttons.
-      if (mappi.getLayer('tietyot') && mappi.getLayer('liikennetiedotteet') && mappi.getLayer('postinumeroalueet')) {
+      if (
+        mappi.getLayer('tietyot') &&
+        mappi.getLayer('liikennetiedotteet') &&
+        mappi.getLayer('postinumeroalueet')
+      ) {
         // Enumerate ids of the layers.
-        var toggleableLayerIds = ['tietyot', 'liikennetiedotteet','postinumeroalueet'];
+        var toggleableLayerIds = [
+          'tietyot',
+          'liikennetiedotteet',
+          'postinumeroalueet'
+        ];
         // Set up the corresponding toggle button for each layer.
         for (var i = 0; i < toggleableLayerIds.length; i++) {
           var id = toggleableLayerIds[i];
@@ -378,12 +380,20 @@ class MapBoxComponent extends LitElement {
               // Toggle layer visibility by changing the layout object's visibility property.
               if (visibility === 'visible') {
                 mappi.setLayoutProperty(clickedLayer, 'visibility', 'none');
-                if (clickedLayer == 'postinumeroalueet') {mappi.setLayoutProperty('alueviivat', 'visibility', 'none')}
+                if (clickedLayer == 'postinumeroalueet') {
+                  mappi.setLayoutProperty('alueviivat', 'visibility', 'none');
+                }
                 this.className = '';
               } else {
                 this.className = 'active';
                 mappi.setLayoutProperty(clickedLayer, 'visibility', 'visible');
-                if (clickedLayer == 'postinumeroalueet') {mappi.setLayoutProperty('alueviivat', 'visibility', 'visible')}
+                if (clickedLayer == 'postinumeroalueet') {
+                  mappi.setLayoutProperty(
+                    'alueviivat',
+                    'visibility',
+                    'visible'
+                  );
+                }
               }
             };
 
@@ -400,9 +410,6 @@ class MapBoxComponent extends LitElement {
       <div id="finntraffic-map"></div>
     `;
   }
-
-  
 }
 //Component registration
 customElements.define('mapbox-component', MapBoxComponent);
-
