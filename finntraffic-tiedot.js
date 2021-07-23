@@ -40,7 +40,7 @@ class MapBoxComponent extends LitElement {
 
     const sendGetRequest = async () => {
       try {
-          const resp = await axios.get(url_postal_areas, {timeout: 10000});
+          const resp = await axios.get(url_postal_areas);
           return resp.data;
       } catch (err) {
           // Handle Error Here
@@ -145,13 +145,13 @@ class MapBoxComponent extends LitElement {
           });    
           
           mappi.addLayer({
-            'id': 'outline',
+            'id': 'alueviivat',
             'type': 'line',
             'source': 'postinumeroalueet',
             'layout': {},
             'paint': {
             'line-color': '#000',
-            'line-width': 3
+            'line-width': 2
             }
           });
 
@@ -378,10 +378,12 @@ class MapBoxComponent extends LitElement {
               // Toggle layer visibility by changing the layout object's visibility property.
               if (visibility === 'visible') {
                 mappi.setLayoutProperty(clickedLayer, 'visibility', 'none');
+                if (clickedLayer == 'postinumeroalueet') {mappi.setLayoutProperty('alueviivat', 'visibility', 'none')}
                 this.className = '';
               } else {
                 this.className = 'active';
                 mappi.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+                if (clickedLayer == 'postinumeroalueet') {mappi.setLayoutProperty('alueviivat', 'visibility', 'visible')}
               }
             };
 
