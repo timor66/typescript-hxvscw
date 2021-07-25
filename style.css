@@ -96,3 +96,8 @@ body {
   animation-name: animatebottom;
   animation-duration: 1s;
 }
+
+.mapboxgl-popup-content {
+  overflow-y: scroll;
+  overflow-x: scroll;
+}
