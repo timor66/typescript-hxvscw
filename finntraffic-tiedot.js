@@ -222,7 +222,7 @@ class MapBoxComponent extends LitElement {
                   '<tr><td>El&auml;kell&auml;iset:</td><td>' +
                   e.features[0].properties.pt_elakel +
                   '<tr><td>Muut:</td><td>' +
-                  e.features[0].properties.pt_elakel +
+                  e.features[0].properties.pt_muut +
                   '</td></tr>' +
                   '</tbody><table>'
               )
