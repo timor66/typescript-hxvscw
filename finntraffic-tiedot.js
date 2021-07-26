@@ -67,6 +67,7 @@ class MapBoxComponent extends LitElement {
       });
       pno_geojson = pno_geojson_tmp;
       document.getElementById('loader').style.display = 'none';
+      document.getElementById('loader_msg').style.display = 'none';
       this.buildMap();
     };
 
@@ -107,7 +108,7 @@ class MapBoxComponent extends LitElement {
             data: pno_geojson
           });
 
-          // Postinumeroalueet layer täyttö
+          // Postinumeroalueet täyttö
           mappi.addLayer({
             id: 'postinumeroalueet',
             type: 'fill',
@@ -118,7 +119,7 @@ class MapBoxComponent extends LitElement {
             }
           });
 
-          // Postinumeroalueet layer rajaviivat
+          // Postinumeroalueet rajaviivat
           mappi.addLayer({
             id: 'alueviivat',
             type: 'line',
@@ -131,7 +132,7 @@ class MapBoxComponent extends LitElement {
             }
           });
 
-          // Tietyöt layer viivat
+          // Tietyöt viivat
           mappi.addLayer({
             id: 'tietyot',
             type: 'line',
@@ -146,7 +147,7 @@ class MapBoxComponent extends LitElement {
             }
           });
 
-          // Tieliikennetiedotteet layer viivat
+          // Tieliikennetiedotteet viivat
           mappi.addLayer({
             id: 'liikennetiedotteet',
             type: 'line',
@@ -199,7 +200,7 @@ class MapBoxComponent extends LitElement {
                   e.features[0].properties.namn +
                   '</td></tr>' +
                   '<tr><td>Pinta-ala (km&sup2;):</td><td>' +
-                  (e.features[0].properties.pinta_ala / 100) +
+                  e.features[0].properties.pinta_ala / 100 +
                   '</td></tr>' +
                   '<tr><td>Vuosi:</td><td>' +
                   e.features[0].properties.vuosi +
@@ -212,13 +213,13 @@ class MapBoxComponent extends LitElement {
                   e.features[0].properties.he_miehet +
                   '<tr><td>Mediaanitulo:</td><td>' +
                   e.features[0].properties.tr_mtu +
-                  '<tr><td>Ty&ouml;llisi&auml;:</td><td>' +
+                  '<tr><td>Ty&ouml;lliset:</td><td>' +
                   e.features[0].properties.pt_tyoll +
-                  '<tr><td>Ty&uouml;tt&ouml;mi&auml;:</td><td>' +
-                  e.features[0].properties.pt_tyot +
-                  '<tr><td>Opiskelijoita:</td><td>' +
+                  '<tr><td>Ty&ouml;tt&ouml;m&auml;t:</td><td>' +
+                  e.features[0].properties.pt_tyott +
+                  '<tr><td>Opiskelijat:</td><td>' +
                   e.features[0].properties.pt_opisk +
-                  '<tr><td>El&auml;kell&auml;isi&auml;:</td><td>' +
+                  '<tr><td>El&auml;kell&auml;iset:</td><td>' +
                   e.features[0].properties.pt_elakel +
                   '<tr><td>Muut:</td><td>' +
                   e.features[0].properties.pt_elakel +
