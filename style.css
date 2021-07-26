@@ -9,7 +9,7 @@ body {
   font-family: Lato;
 }
 
-#finntraffic-map {
+#karttaharjoitus-map {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -75,7 +75,7 @@ body {
 #loader_msg {
   position: absolute;
   left: 33%;
-  top: 20%;
+  top: 15%;
   z-index: 1;
 }
 

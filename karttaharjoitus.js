@@ -41,7 +41,7 @@ class MapBoxComponent extends LitElement {
     };
     mappi = this.map;
 
-    // Postinumeroalueiden GeoJSON-haku ja koordinaattimuunnos EPSG:3067 => EPGS:4326
+    // Postinumeroalueiden GeoJSON-haku ja koordinaattimuunnos EPSG:3067 => EPSG:4326
 
     const sendGetRequest = async () => {
       try {
@@ -431,5 +431,5 @@ class MapBoxComponent extends LitElement {
     `;
   }
 }
-//Component registration
+
 customElements.define('mapbox-component', MapBoxComponent);
