@@ -92,7 +92,7 @@ class MapBoxComponent extends LitElement {
           if (error) throw error;
           mappi.addImage('custom-marker', image);
 
-          // Lisätään layerit - tietyöt, liikennetiedotteet ja postinumeroalueet
+          // Lisätään GeoJSON-layerit - tietyöt, liikennetiedotteet ja postinumeroalueet
 
           mappi.addSource('tietyot', {
             type: 'geojson',
