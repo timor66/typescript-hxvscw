@@ -52,7 +52,7 @@ class MapBoxComponent extends LitElement {
       }
     };
 
-    let epgs_3067_Handler = res => {
+    let epsg_3067_4326_Handler = res => {
       var pno_geojson_tmp = eval(res);
       var pno_geojson_tmp_features = eval(pno_geojson_tmp.features);
 
@@ -73,7 +73,7 @@ class MapBoxComponent extends LitElement {
       this.buildMap();
     };
 
-    sendGetRequest().then(result => epgs_3067_Handler(result));
+    sendGetRequest().then(result => epsg_3067_4326_Handler(result));
   }
 
   buildMap() {
