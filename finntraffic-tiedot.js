@@ -180,7 +180,7 @@ class MapBoxComponent extends LitElement {
 
           mappi.on('mouseleave', 'liikennetiedotteet', function() {
             mappi.getCanvas().style.cursor = '';
-            popup_tiedotteet.remove();
+            //popup_tiedotteet.remove();
           });
 
           mappi.on('click', 'postinumeroalueet', function(e) {
