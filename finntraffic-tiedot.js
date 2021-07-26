@@ -198,8 +198,8 @@ class MapBoxComponent extends LitElement {
                   '<tr><td>Namn:</td><td>' +
                   e.features[0].properties.namn +
                   '</td></tr>' +
-                  '<tr><td>Pinta-ala:</td><td>' +
-                  e.features[0].properties.pinta_ala +
+                  '<tr><td>Pinta-ala (km&sup2;):</td><td>' +
+                  (e.features[0].properties.pinta_ala / 100) +
                   '</td></tr>' +
                   '<tr><td>Vuosi:</td><td>' +
                   e.features[0].properties.vuosi +
