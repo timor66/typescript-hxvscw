@@ -206,7 +206,7 @@ class MapBoxComponent extends LitElement {
                   e.features[0].properties.vuosi +
                   '</td></tr>' +
                   '<tr><td>Asukasm&auml;&auml;r&auml;:</td><td>' +
-                  e.features[0].properties.vakiy +
+                  e.features[0].properties.he_vakiy +
                   '<tr><td>Naiset:</td><td>' +
                   e.features[0].properties.he_naiset +
                   '<tr><td>Miehet:</td><td>' +
