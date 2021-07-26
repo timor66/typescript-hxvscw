@@ -74,8 +74,8 @@ body {
 
 #loader_msg {
   position: absolute;
-  left: 50%;
-  top: 50%;
+  left: 33%;
+  top: 30%;
   z-index: 1;
 }
 
