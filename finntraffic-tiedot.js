@@ -189,23 +189,39 @@ class MapBoxComponent extends LitElement {
                 '<table><th>' +
                   e.features[0].properties.nimi +
                   '</th><tbody>' +
-                  '<tr><td>Postinumeroalue</td><td>' +
+                  '<tr><td>Postinumeroalue:</td><td>' +
                   e.features[0].properties.postinumeroalue +
                   '</td></tr>' +
-                  '<tr><td>Nimi</td><td>' +
+                  '<tr><td>Nimi:</td><td>' +
                   e.features[0].properties.nimi +
                   '</td></tr>' +
-                  '<tr><td>Namn</td><td>' +
+                  '<tr><td>Namn:</td><td>' +
                   e.features[0].properties.namn +
                   '</td></tr>' +
-                  '<tr><td>Pinta-ala</td><td>' +
+                  '<tr><td>Pinta-ala:</td><td>' +
                   e.features[0].properties.pinta_ala +
                   '</td></tr>' +
-                  '<tr><td>Vuosi</td><td>' +
+                  '<tr><td>Vuosi:</td><td>' +
                   e.features[0].properties.vuosi +
                   '</td></tr>' +
-                  '<tr><td>Kunta</td><td>' +
-                  e.features[0].properties.kunta +
+                  '<tr><td>Asukasm&auml;&auml;r&auml;:</td><td>' +
+                  e.features[0].properties.vakiy +
+                  '<tr><td>Naiset:</td><td>' +
+                  e.features[0].properties.he_naiset +
+                  '<tr><td>Miehet:</td><td>' +
+                  e.features[0].properties.he_miehet +
+                  '<tr><td>Mediaanitulo:</td><td>' +
+                  e.features[0].properties.tr_mtu +
+                  '<tr><td>Ty&ouml;llisi&auml;:</td><td>' +
+                  e.features[0].properties.pt_tyoll +
+                  '<tr><td>Ty&uouml;tt&ouml;mi&auml;:</td><td>' +
+                  e.features[0].properties.pt_tyot +
+                  '<tr><td>Opiskelijoita:</td><td>' +
+                  e.features[0].properties.pt_opisk +
+                  '<tr><td>El&auml;kell&auml;isi&auml;:</td><td>' +
+                  e.features[0].properties.pt_elakel +
+                  '<tr><td>Muut:</td><td>' +
+                  e.features[0].properties.pt_elakel +
                   '</td></tr>' +
                   '</tbody><table>'
               )
