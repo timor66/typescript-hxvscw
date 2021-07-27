@@ -188,6 +188,14 @@ class MapBoxComponent extends LitElement {
             mappi.getCanvas().style.cursor = '';
           });
 
+          mappi.on('mouseenter', 'postinumeroalueet', function(e) {
+            mappi.getCanvas().style.cursor = 'context-menu';
+          });
+
+          mappi.on('mouseleave', 'postinumeroalueet', function() {
+            mappi.getCanvas().style.cursor = '';
+          });
+
           mappi.on('click', 'postinumeroalueet', function(e) {
             new mapboxgl.Popup()
               .setLngLat(e.lngLat)
