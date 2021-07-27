@@ -11,8 +11,7 @@ var mappi;
 var pno_geojson;
 
 const MAB_BOX_TIMEOUT = 60000000;
-const MAPBOX_TOKEN =
-  'pk.eyJ1IjoidGltb3I2NiIsImEiOiJja3F3ODczd3UwNTJ4MndueHBkdjB5c3dsIn0.68mu1Rk-3ZMPqlzBF_HknQ';
+const MAPBOX_TOKEN = '';
 const url_road_works =
   'https://tie.digitraffic.fi/api/v3/data/traffic-messages/simple?inactiveHours=0&includeAreaGeometry=true&situationType=ROAD_WORK';
 const url_traffic_announcements =
