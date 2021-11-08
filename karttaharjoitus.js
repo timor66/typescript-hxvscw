@@ -37,7 +37,7 @@ class MapBoxComponent extends LitElement {
     let options = {
       enableHighAccuracy: true,
       timeout: MAB_BOX_TIMEOUT,
-      maximumAge: 0
+      maximumAge: 0,
     };
     mappi = this.map;
 
@@ -52,14 +52,14 @@ class MapBoxComponent extends LitElement {
       }
     };
 
-    let epsg_3067_4326_Handler = res => {
+    let epsg_3067_4326_Handler = (res) => {
       var pno_geojson_tmp = eval(res);
       var pno_geojson_tmp_features = eval(pno_geojson_tmp.features);
 
-      pno_geojson_tmp.features.forEach(function(feature) {
-        feature.geometry.coordinates.forEach(function(coordinates) {
-          coordinates.forEach(function(coord) {
-            coord.forEach(function(coord2) {
+      pno_geojson_tmp.features.forEach(function (feature) {
+        feature.geometry.coordinates.forEach(function (coordinates) {
+          coordinates.forEach(function (coord) {
+            coord.forEach(function (coord2) {
               var latlon = proj4(epsg3067.proj4, epsg4326.proj4, coord2);
               coord2.splice(0, 1, latlon[0]);
               coord2.splice(1, 1, latlon[1]);
@@ -68,12 +68,44 @@ class MapBoxComponent extends LitElement {
         });
       });
       pno_geojson = pno_geojson_tmp;
+
+      mappi.addSource('postinumeroalueet', {
+        type: 'geojson',
+        data: pno_geojson,
+      });
+
+      // Postinumeroalueiden täyttö ja väritys
+
+      mappi.addLayer({
+        id: 'postinumeroalueet',
+        type: 'fill',
+        source: 'postinumeroalueet',
+        paint: {
+          'fill-color': '#0000ff',
+          'fill-opacity': 0.2,
+        },
+      });
+
+      // Postinumeroalueet rajaviivat ja väritys
+
+      mappi.addLayer({
+        id: 'alueviivat',
+        type: 'line',
+        source: 'postinumeroalueet',
+        layout: {},
+        paint: {
+          'line-color': '#000',
+          'line-opacity': 0.2,
+          'line-width': 2,
+        },
+      });
+
       document.getElementById('loader').style.display = 'none';
       document.getElementById('loader_msg').style.display = 'none';
-      this.buildMap();
     };
 
-    sendGetRequest().then(result => epsg_3067_4326_Handler(result));
+    sendGetRequest().then((result) => epsg_3067_4326_Handler(result));
+    this.buildMap();
   }
 
   buildMap() {
@@ -82,13 +114,13 @@ class MapBoxComponent extends LitElement {
       container: 'karttaharjoitus-map',
       style: 'mapbox://styles/timor66/ckr32cq3pemln18qspaqpkqiq',
       center: [24.94, 60.16],
-      zoom: 6
+      zoom: 6,
     }).addControl(new mapboxgl.NavigationControl(), 'top-left');
 
     mappi.on('load', () => {
       mappi.loadImage(
         'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',
-        function(error, image) {
+        function (error, image) {
           if (error) throw error;
           mappi.addImage('custom-marker', image);
 
@@ -96,43 +128,12 @@ class MapBoxComponent extends LitElement {
 
           mappi.addSource('tietyot', {
             type: 'geojson',
-            data: url_road_works
+            data: url_road_works,
           });
 
           mappi.addSource('liikennetiedotteet', {
             type: 'geojson',
-            data: url_traffic_announcements
-          });
-
-          mappi.addSource('postinumeroalueet', {
-            type: 'geojson',
-            data: pno_geojson
-          });
-
-          // Postinumeroalueiden täyttö ja väritys
-
-          mappi.addLayer({
-            id: 'postinumeroalueet',
-            type: 'fill',
-            source: 'postinumeroalueet',
-            paint: {
-              'fill-color': '#0000ff',
-              'fill-opacity': 0.2
-            }
-          });
-
-          // Postinumeroalueet rajaviivat ja väritys
-
-          mappi.addLayer({
-            id: 'alueviivat',
-            type: 'line',
-            source: 'postinumeroalueet',
-            layout: {},
-            paint: {
-              'line-color': '#000',
-              'line-opacity': 0.2,
-              'line-width': 2
-            }
+            data: url_traffic_announcements,
           });
 
           // Tietöiden viivat ja väritys
@@ -143,12 +144,12 @@ class MapBoxComponent extends LitElement {
             source: 'tietyot',
             layout: {
               'line-join': 'round',
-              'line-cap': 'round'
+              'line-cap': 'round',
             },
             paint: {
               'line-color': '#f00',
-              'line-width': 8
-            }
+              'line-width': 8,
+            },
           });
 
           // Tieliikennetiedotteiden viivat ja väritys
@@ -159,12 +160,12 @@ class MapBoxComponent extends LitElement {
             source: 'liikennetiedotteet',
             layout: {
               'line-join': 'round',
-              'line-cap': 'round'
+              'line-cap': 'round',
             },
             paint: {
               'line-color': '#ff0',
-              'line-width': 8
-            }
+              'line-width': 8,
+            },
           });
 
           // Infoikkunoiden alustus ja eventit
@@ -172,31 +173,31 @@ class MapBoxComponent extends LitElement {
           var popup_tietyot = new mapboxgl.Popup();
           var popup_tiedotteet = new mapboxgl.Popup();
 
-          mappi.on('mouseenter', 'tietyot', function(e) {
+          mappi.on('mouseenter', 'tietyot', function (e) {
             mappi.getCanvas().style.cursor = 'pointer';
           });
 
-          mappi.on('mouseleave', 'tietyot', function() {
+          mappi.on('mouseleave', 'tietyot', function () {
             mappi.getCanvas().style.cursor = '';
           });
 
-          mappi.on('mouseenter', 'liikennetiedotteet', function(e) {
+          mappi.on('mouseenter', 'liikennetiedotteet', function (e) {
             mappi.getCanvas().style.cursor = 'pointer';
           });
 
-          mappi.on('mouseleave', 'liikennetiedotteet', function() {
+          mappi.on('mouseleave', 'liikennetiedotteet', function () {
             mappi.getCanvas().style.cursor = '';
           });
 
-          mappi.on('mouseenter', 'postinumeroalueet', function(e) {
+          mappi.on('mouseenter', 'postinumeroalueet', function (e) {
             mappi.getCanvas().style.cursor = 'context-menu';
           });
 
-          mappi.on('mouseleave', 'postinumeroalueet', function() {
+          mappi.on('mouseleave', 'postinumeroalueet', function () {
             mappi.getCanvas().style.cursor = '';
           });
 
-          mappi.on('click', 'postinumeroalueet', function(e) {
+          mappi.on('click', 'postinumeroalueet', function (e) {
             new mapboxgl.Popup()
               .setLngLat(e.lngLat)
               .setHTML(
@@ -243,7 +244,7 @@ class MapBoxComponent extends LitElement {
           });
 
           //
-          mappi.on('click', 'tietyot', function(e) {
+          mappi.on('click', 'tietyot', function (e) {
             mappi.getCanvas().style.cursor = 'pointer';
 
             var announcements = eval(e.features[0].properties.announcements);
@@ -280,7 +281,7 @@ class MapBoxComponent extends LitElement {
             weekdays.push('THURSDAY', 'TO');
             weekdays.push('FRIDAY', 'PE');
 
-            working_hours.forEach(function(arrayItem) {
+            working_hours.forEach(function (arrayItem) {
               wrkHrs =
                 wrkHrs +
                 arrayItem.weekday +
@@ -291,7 +292,7 @@ class MapBoxComponent extends LitElement {
                 '<br/>';
             });
 
-            restrictions.forEach(function(arrayItem) {
+            restrictions.forEach(function (arrayItem) {
               resTr =
                 resTr +
                 arrayItem.restriction.name +
@@ -330,7 +331,7 @@ class MapBoxComponent extends LitElement {
             popup_tietyot.addTo(mappi);
           });
 
-          mappi.on('click', 'liikennetiedotteet', function(e) {
+          mappi.on('click', 'liikennetiedotteet', function (e) {
             mappi.getCanvas().style.cursor = 'pointer';
 
             var announcements = eval(e.features[0].properties.announcements);
@@ -375,7 +376,7 @@ class MapBoxComponent extends LitElement {
 
     // Layervalikon alustus
 
-    mappi.on('idle', function() {
+    mappi.on('idle', function () {
       if (
         mappi.getLayer('tietyot') &&
         mappi.getLayer('liikennetiedotteet') &&
@@ -384,7 +385,7 @@ class MapBoxComponent extends LitElement {
         var toggleableLayerIds = [
           'tietyöt',
           'liikennetiedotteet',
-          'postinumeroalueet'
+          'postinumeroalueet',
         ];
 
         for (var i = 0; i < toggleableLayerIds.length; i++) {
@@ -396,7 +397,7 @@ class MapBoxComponent extends LitElement {
             link.textContent = id;
             link.className = 'active';
 
-            link.onclick = function(e) {
+            link.onclick = function (e) {
               var clickedLayer = this.textContent;
               e.preventDefault();
               e.stopPropagation();
