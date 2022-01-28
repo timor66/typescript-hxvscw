@@ -383,7 +383,7 @@ class MapBoxComponent extends LitElement {
         mappi.getLayer('postinumeroalueet')
       ) {
         var toggleableLayerIds = [
-          'tietyöt',
+          'tietyot',
           'liikennetiedotteet',
           'postinumeroalueet',
         ];
