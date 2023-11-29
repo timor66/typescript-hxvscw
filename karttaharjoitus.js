@@ -14,9 +14,9 @@ const MAB_BOX_TIMEOUT = 60000000;
 const MAPBOX_TOKEN =
   'pk.eyJ1IjoidGltb3I2NiIsImEiOiJja3F3ODczd3UwNTJ4MndueHBkdjB5c3dsIn0.68mu1Rk-3ZMPqlzBF_HknQ';
 const url_road_works =
-  'https://tie.digitraffic.fi/api/v3/data/traffic-messages/simple?inactiveHours=0&includeAreaGeometry=true&situationType=ROAD_WORK';
+  'https://tie.digitraffic.fi/api/traffic-message/v1/messages?inactiveHours=0&includeAreaGeometry=true&situationType=ROAD_WORK';
 const url_traffic_announcements =
-  'https://tie.digitraffic.fi/api/v3/data/traffic-messages/simple?inactiveHours=0&includeAreaGeometry=false&situationType=TRAFFIC_ANNOUNCEMENT';
+  'https://tie.digitraffic.fi/api/traffic-message/v1/messages?inactiveHours=0&includeAreaGeometry=false&situationType=TRAFFIC_ANNOUNCEMENT';
 const url_postal_areas =
   'https://geo.stat.fi/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=postialue:pno_tilasto&outputFormat=json';
 
@@ -246,31 +246,29 @@ class MapBoxComponent extends LitElement {
           //
           mappi.on('click', 'tietyot', function (e) {
             mappi.getCanvas().style.cursor = 'pointer';
-
-            var announcements = eval(e.features[0].properties.announcements);
-            var title = announcements[0].title;
-            var features = eval(announcements[0].features);
-            var roadWorkPhases = eval(announcements[0].roadWorkPhases);
-            var worktypes = eval(roadWorkPhases[0].worktypes);
-            var location_description = announcements[0].location.description;
-            var worktypes_description = worktypes[0].description;
+            var announcements = eval(e.features[0].properties?.announcements);
+            var title = announcements[0]?.title;
+            var roadWorkPhases = eval(announcements[0]?.roadWorkPhases);
+            var worktypes = eval(roadWorkPhases[0]?.workTypes);
+            var location_description = announcements[0]?.location?.description;
+            var worktypes_description = worktypes[0]?.description;
             var releaseTime = moment(
-              e.features[0].properties.releaseTime
+              e.features[0]?.properties?.releaseTime
             ).format('DD.MM.YYYY HH:mm:ss');
-            var time_and_duration = announcements[0].timeAndDuration;
-            var start_time = moment(time_and_duration.startTime).format(
+            var time_and_duration = announcements[0]?.timeAndDuration;
+            var start_time = moment(time_and_duration?.startTime).format(
               'DD.MM.YYYY HH:mm:ss'
             );
-            var end_time = moment(time_and_duration.endTime).format(
+            var end_time = moment(time_and_duration?.endTime).format(
               'DD.MM.YYYY HH:mm:ss'
             );
-            var working_hours = roadWorkPhases[0].workingHours;
+            var working_hours = roadWorkPhases[0]?.workingHours;
             var restrictions = eval(
-              announcements[0].roadWorkPhases[0].restrictions
+              announcements[0].roadWorkPhases[0]?.restrictions
             );
-            var comment = !announcements[0].roadWorkPhases[0].comment
+            var comment = !announcements[0]?.roadWorkPhases[0]?.comment
               ? ''
-              : announcements[0].roadWorkPhases[0].comment;
+              : announcements[0]?.roadWorkPhases[0]?.comment;
 
             var wrkHrs = '';
             var resTr = '';
@@ -295,7 +293,7 @@ class MapBoxComponent extends LitElement {
             restrictions.forEach(function (arrayItem) {
               resTr =
                 resTr +
-                arrayItem.restriction.name +
+                arrayItem?.restriction?.name +
                 '. ' +
                 (!arrayItem.restriction.quantity
                   ? ''
@@ -334,20 +332,22 @@ class MapBoxComponent extends LitElement {
           mappi.on('click', 'liikennetiedotteet', function (e) {
             mappi.getCanvas().style.cursor = 'pointer';
 
-            var announcements = eval(e.features[0].properties.announcements);
-            var title = announcements[0].title;
-            var features = eval(announcements[0].features);
-            var features_name = features[0].name != '' ? features[0].name : '';
-            var comment = announcements[0].comment;
+            var announcements = eval(e.features[0]?.properties?.announcements);
+            var title = announcements[0]?.title;
+            var features = eval(announcements[0]?.features);
+            console.log(announcements[0]);
+            var features_name =
+              features[0]?.name != '' ? features[0]?.name : '';
+            var comment = announcements[0]?.comment;
             var releaseTime = moment(
-              e.features[0].properties.releaseTime
+              e.features[0]?.properties?.releaseTime
             ).format('DD.MM.YYYY HH:mm:ss');
-            var description = announcements[0].location.description;
-            var time_and_duration = announcements[0].timeAndDuration;
-            var start_time = moment(time_and_duration.startTime).format(
+            var description = announcements[0]?.location?.description;
+            var time_and_duration = announcements[0]?.timeAndDuration;
+            var start_time = moment(time_and_duration?.startTime).format(
               'DD.MM.YYYY HH:mm:ss'
             );
-            var end_time = moment(time_and_duration.endTime).format(
+            var end_time = moment(time_and_duration?.endTime).format(
               'DD.MM.YYYY HH:mm:ss'
             );
 
